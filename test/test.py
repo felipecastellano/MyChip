@@ -50,7 +50,7 @@ async def test_alu(dut):
 
     for i in range(14):
         bit = (data >> (13 - i)) & 1
-        dut.ui_in.value = (dut.ui_in.value & 0b11110000) | bit
+        dut.ui_in.value = (int(dut.ui_in.value) & 0b11110000) | bit
         await ClockCycles(dut.clk, 1)
 
     # =========================
