@@ -1,20 +1,70 @@
-<!---
 
-This file is used to generate your project datasheet. Please fill in the information below and delete any unused
-sections.
+Cada bit debe enviarse sincronizado con el reloj (`clk`).
 
-You can also include images in this folder and reference them in the markdown. Each image must be less than
-512 kb in size, and the combined size of all images must be less than 1 MB.
--->
+---
 
-## How it works
+### 3. Selección de operación
+Antes o durante la carga se define:
 
-Explain how your project works
+- `000` → Suma
+- `001` → AND
+- `010` → OR
+- `011` → XOR
+- `100` → Resta
 
-## How to test
+---
 
-Explain how to use your project
+### 4. Ejecución automática
+Cuando el contador llega a 14:
+
+- `flag_14 = 1`
+- Se ejecuta la operación seleccionada
+- `done = 1`
+- El resultado aparece en `r0–r6`
+
+---
+
+### 5. Resultados esperados
+
+Con A = 1111111, B = 1111111
+
+
+Resultados:
+
+- Suma → 1111110 (overflow en 7 bits)
+- AND → 1111111
+- OR → 1111111
+- XOR → 0000000
+- Resta → 0000000
+
+---
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+Este proyecto puede implementarse en simulación o hardware FPGA.
+
+### Simulación recomendada:
+- Digital (Java tool)
+- Vivado
+- Quartus
+- ModelSim / GTKWave
+
+---
+
+### Hardware opcional (FPGA):
+
+Entradas:
+- `bit_in` → switch o botón
+- `op_select` → 3 switches
+- `reset` → botón
+
+Salidas:
+- `r0–r6` → 7 LEDs
+- `done` → LED indicador
+
+---
+
+### Visualización sugerida:
+- LEDs para cada bit del resultado
+- LED adicional para señal `done`
+
