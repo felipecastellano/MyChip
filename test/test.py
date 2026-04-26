@@ -7,34 +7,67 @@ from cocotb.triggers import ClockCycles
 
 
 @cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
+async def test_alu(dut):
+    dut._log.info("Start ALU test")
 
-    # Set the clock period to 10 us (100 KHz)
+    # Clock 100 KHz
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
 
-    # Reset
+    # =========================
+    # RESET
+    # =========================
     dut._log.info("Reset")
     dut.ena.value = 1
     dut.ui_in.value = 0
     dut.uio_in.value = 0
     dut.rst_n.value = 0
+
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    dut._log.info("Test project behavior")
+    dut._log.info("Sending serial data")
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+    # =========================
+    # CONFIGURAR OPERACIÓN
+    # =========================
+    # op_select = 000 (SUMA)
+    op = 0b000
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+    # regA = 7 bits (ej: 5 = 0000101)
+    A = 0b0000101
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    # regB = 7 bits (ej: 3 = 0000011)
+    B = 0b0000011
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # meter op_select en ui_in[3:1]
+    dut.ui_in.value = (op << 1)
+
+    # =========================
+    # ENVIAR 14 BITS SERIALMENTE
+    # =========================
+    data = (A << 7) | B   # 14 bits
+
+    for i in range(14):
+        bit = (data >> (13 - i)) & 1
+        dut.ui_in.value = (dut.ui_in.value & 0b11110000) | bit
+        await ClockCycles(dut.clk, 1)
+
+    # =========================
+    # ESPERAR RESULTADO
+    # =========================
+    await ClockCycles(dut.clk, 5)
+
+    dut._log.info("Checking result")
+
+    # =========================
+    # RESULTADO ESPERADO
+    # =========================
+    # 5 + 3 = 8 → 0001000
+    expected = 0b0001000
+
+    actual = (
+        (dut.uo_out.value.integer & 0b01111111)
+    )
+
+    assert actual == expected, f"Expected {expected}, got {actual}"
